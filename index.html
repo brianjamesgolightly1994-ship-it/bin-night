@@ -181,7 +181,12 @@ function load() {
 }
 function save(v) { try { localStorage.setItem(STORE, JSON.stringify(v)); } catch (e) {} }
 
-let config = load();
+// Starting dates for the main address, used until someone looks up their own
+const DEFAULT_CONFIG = {
+  address: "Home",
+  dates: { grey: "2026-10-16", blue: "2026-10-23", green: "2026-10-09", food: "2026-10-08", glass: "2026-10-14" },
+};
+let config = load() || DEFAULT_CONFIG;
 
 // Next collection on or after `today` (day numbers since epoch)
 function nextOn(bin, today) {
@@ -203,27 +208,25 @@ function render() {
   const dot = k => `<span class="dot" style="--c: var(--${k})"></span>`;
   $("addr").textContent = config.address || "";
 
-  const first = items[0].next;
-  const group = items.filter(i => i.next === first);
-  const daysToCollect = first - today;
-  const putOut = daysToCollect - 1;
+  // The hero counts down to the next evening a bin goes out; today's collections get a note
+  const upcoming = bins.map(b => ({ ...b, next: nextOn(b, today + 1) }));
+  const first = Math.min(...upcoming.map(i => i.next));
+  const group = upcoming.filter(i => i.next === first);
+  const todays = items.filter(i => i.next === today).map(i => i.name.toLowerCase());
+  const putOut = first - today - 1;
   const big = $("heroBig"), unit = $("heroUnit");
-  const names = group.map(g => g.name.toLowerCase());
-  const list = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names.at(-1) : names[0];
-  const cap = s => s[0].toUpperCase() + s.slice(1);
+  const join = a => a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a.at(-1) : a[0];
+  const list = join(group.map(g => g.name.toLowerCase()));
+  const todayNote = todays.length ? ` The ${join(todays)} ${todays.length > 1 ? "are" : "is"} being collected today.` : "";
   big.classList.remove("word");
-  if (daysToCollect === 0) {
-    $("heroLabel").textContent = "Collection day";
-    big.textContent = "Today"; big.classList.add("word"); unit.textContent = "";
-    $("heroWhat").textContent = `${cap(list)} ${group.length > 1 ? "are" : "is"} being collected today from 06:30.`;
-  } else if (putOut === 0) {
+  if (putOut === 0) {
     $("heroLabel").textContent = "Bin night";
     big.textContent = "Tonight"; big.classList.add("word"); unit.textContent = "";
-    $("heroWhat").textContent = `Put the ${list} out tonight for ${fmt(first, { weekday: "long" })} morning.`;
+    $("heroWhat").textContent = `Put the ${list} out tonight for ${fmt(first, { weekday: "long" })} morning.` + todayNote;
   } else {
     $("heroLabel").textContent = "Next bin night in";
     big.textContent = putOut; unit.textContent = putOut === 1 ? "day" : "days";
-    $("heroWhat").textContent = `Put the ${list} out on ${fmt(first - 1, { weekday: "long" })} evening, ${fmt(first - 1, { day: "numeric", month: "long" })}.`;
+    $("heroWhat").textContent = `Put the ${list} out on ${fmt(first - 1, { weekday: "long" })} evening, ${fmt(first - 1, { day: "numeric", month: "long" })}.` + todayNote;
   }
   $("heroChips").innerHTML = group.map(g => `<span class="chip">${dot(g.key)}${g.name}</span>`).join("");
 

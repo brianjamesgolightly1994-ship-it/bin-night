@@ -45,6 +45,10 @@ jobs:
         with:
           tag_name: latest
           name: Bin Night for Android
-          body: Download BinNight.apk on your Android phone and open it to install.
-          files: BinNight.apk
+          body: |
+            Download BinNight.apk on your Android phone and open it to install.
+            bins.ics adds the same collections to Google Calendar with a 7pm reminder the night before.
+          files: |
+            BinNight.apk
+            bins.ics
           make_latest: true
