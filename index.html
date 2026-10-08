@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bin Night</title>
+<meta name="description" content="Countdown to the next bin night.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1f6f5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bin Night">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one narrow column; the next bin night as a big countdown, then each container as a row with its own colour tab */
+:root {
+  --bg: #eef1f0;
+  --surface: #ffffff;
+  --fg: #1d2523;
+  --muted: #5b6764;
+  --line: #d6dcda;
+  --accent: #1f6f5c;
+  --grey: #77807e; --green: #1f8a3c; --blue: #2a6fe0; --glass: #d8312b; --food: #4a4442;
+  --display: "Bricolage Grotesque", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121716; --surface: #1b2220; --fg: #e8eeec; --muted: #9aa7a3; --line: #2c3633; --accent: #5cc7a8;
+  --grey: #8d9794; --green: #34a853; --blue: #4d8cf5; --glass: #ee5049; --food: #8a807c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121716; --surface: #1b2220; --fg: #e8eeec; --muted: #9aa7a3; --line: #2c3633; --accent: #5cc7a8;
+  --grey: #8d9794; --green: #34a853; --blue: #4d8cf5; --glass: #ee5049; --food: #8a807c; color-scheme: dark }
+
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+.wrap { max-width: 480px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: grid; gap: 22px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; margin: 0; }
+.addr { color: var(--muted); font-size: 0.82rem; }
+
+.hero { background: var(--surface); border-radius: 22px; padding: 22px 20px 20px; display: grid; gap: 14px; border: 1px solid var(--line); }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+.count { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.big { font-family: var(--display); font-weight: 800; font-size: clamp(3.6rem, 18vw, 5.2rem); line-height: 0.9; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.big.word { font-size: clamp(2.6rem, 13vw, 3.6rem); }
+.unit { font-family: var(--display); font-weight: 500; font-size: 1.3rem; color: var(--muted); }
+.what { font-size: 1.05rem; margin: 0; text-wrap: balance; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 999px; background: var(--bg); font-weight: 700; font-size: 0.92rem; }
+.dot { width: 14px; height: 14px; border-radius: 4px; background: var(--c); flex: none; }
+
+h2 { font-family: var(--display); font-weight: 800; font-size: 1.05rem; margin: 0 0 -10px; }
+.list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.row { display: grid; grid-template-columns: 8px 1fr auto; gap: 14px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px 12px 0; overflow: hidden; }
+.tab { align-self: stretch; background: var(--c); margin-block: -12px; }
+.name { font-weight: 700; margin: 0; }
+.sub { color: var(--muted); font-size: 0.85rem; margin: 0; min-width: 0; }
+.days { text-align: right; font-variant-numeric: tabular-nums; }
+.days b { font-family: var(--display); font-weight: 800; font-size: 1.6rem; line-height: 1; display: block; }
+.days span { color: var(--muted); font-size: 0.75rem; }
+.row.soon .days b { color: var(--accent); }
+
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 2px 10px; display: grid; justify-items: center; gap: 6px; min-height: 76px; align-content: start; }
+.day.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.dname { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+.dnum { font-family: var(--display); font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.ddots { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; padding-inline: 2px; }
+.ddots .dot { width: 10px; height: 10px; border-radius: 3px; }
+
+footer { color: var(--muted); font-size: 0.8rem; display: grid; gap: 6px; }
+footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="brand">Bin Night</p>
+  </header>
+
+  <section class="hero" aria-live="polite">
+    <span class="eyebrow" id="heroLabel">Next bin night</span>
+    <div class="count"><span class="big" id="heroBig">–</span><span class="unit" id="heroUnit"></span></div>
+    <p class="what" id="heroWhat"></p>
+    <div class="chips" id="heroChips"></div>
+  </section>
+
+  <h2>Next 14 days</h2>
+  <div class="week" id="week"></div>
+  <div class="week" id="week2"></div>
+
+  <h2>Every container</h2>
+  <ul class="list" id="list"></ul>
+
+  <footer>
+    <span>Dates follow the pattern from Midlothian Council's printed schedule, checked up to September 2027. Collections start at 06:30, so bins go out the evening before. Holiday weeks can change, so check the <a href="https://my.midlothian.gov.uk/service/Bin_Collection_Dates" target="_blank" rel="noopener">council's bin page</a> around Christmas.</span>
+  </footer>
+</div>
+
+<script>
+const BINS = [
+  { key: "grey",  name: "Grey bin",   what: "General waste",            start: "2026-10-13", every: 21 },
+  { key: "blue",  name: "Blue bin",   what: "Plastics, cans, cartons",  start: "2026-10-20", every: 21 },
+  { key: "green", name: "Green bin",  what: "Paper and card",           start: "2026-10-27", every: 21 },
+  { key: "food",  name: "Food caddy", what: "Food waste",               start: "2026-10-14", every: 7 },
+  { key: "glass", name: "Glass box",  what: "Glass bottles and jars",   start: "2026-10-15", every: 14 },
+];
+const DAY = 86400000;
+const toDay = d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY;
+const parse = s => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d) / DAY; };
+const fmt = (n, opts) => new Date(n * DAY).toLocaleDateString("en-GB", { timeZone: "UTC", ...opts });
+
+// Next collection on or after `today` (day numbers since epoch)
+function nextOn(bin, today) {
+  const s = parse(bin.start);
+  if (today <= s) return s;
+  return s + Math.ceil((today - s) / bin.every) * bin.every;
+}
+function onDay(bin, d) { const s = parse(bin.start); return d >= s && (d - s) % bin.every === 0; }
+
+function render() {
+  const today = toDay(new Date());
+  const items = BINS.map(b => ({ ...b, next: nextOn(b, today) })).sort((a, b) => a.next - b.next);
+  const dot = k => `<span class="dot" style="--c: var(--${k})"></span>`;
+
+  // Hero: the soonest collection, grouping bins that share it
+  const first = items[0].next;
+  const group = items.filter(i => i.next === first);
+  const daysToCollect = first - today;
+  const putOut = daysToCollect - 1;
+  const big = document.getElementById("heroBig"), unit = document.getElementById("heroUnit");
+  const names = group.map(g => g.name.toLowerCase());
+  const list = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names.at(-1) : names[0];
+  const cap = s => s[0].toUpperCase() + s.slice(1);
+  big.classList.remove("word");
+  if (daysToCollect === 0) {
+    document.getElementById("heroLabel").textContent = "Collection day";
+    big.textContent = "Today"; big.classList.add("word"); unit.textContent = "";
+    document.getElementById("heroWhat").textContent = `${cap(list)} ${group.length > 1 ? "are" : "is"} being collected today from 06:30.`;
+  } else if (putOut === 0) {
+    document.getElementById("heroLabel").textContent = "Bin night";
+    big.textContent = "Tonight"; big.classList.add("word"); unit.textContent = "";
+    document.getElementById("heroWhat").textContent = `Put the ${list} out tonight for ${fmt(first, { weekday: "long" })} morning.`;
+  } else {
+    document.getElementById("heroLabel").textContent = "Next bin night in";
+    big.textContent = putOut; unit.textContent = putOut === 1 ? "day" : "days";
+    document.getElementById("heroWhat").textContent = `Put the ${list} out on ${fmt(first - 1, { weekday: "long" })} evening, ${fmt(first - 1, { day: "numeric", month: "long" })}.`;
+  }
+  document.getElementById("heroChips").innerHTML = group.map(g => `<span class="chip">${dot(g.key)}${g.name}</span>`).join("");
+
+  // Two-week strip, marked on collection days
+  ["week", "week2"].forEach((id, w) => {
+    let html = "";
+    for (let i = 0; i < 7; i++) {
+      const d = today + w * 7 + i;
+      const hits = BINS.filter(b => onDay(b, d));
+      html += `<div class="day${d === today ? " today" : ""}" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long" })}: ${hits.map(h => h.name).join(", ") || "no collection"}">
+        <span class="dname">${fmt(d, { weekday: "short" })}</span>
+        <span class="dnum">${fmt(d, { day: "numeric" })}</span>
+        <span class="ddots">${hits.map(h => dot(h.key)).join("")}</span></div>`;
+    }
+    document.getElementById(id).innerHTML = html;
+  });
+
+  // Per-container rows
+  document.getElementById("list").innerHTML = items.map(b => {
+    const n = b.next - today - 1;
+    const label = n < 0 ? "Today" : n === 0 ? "Tonight" : n;
+    const unitTxt = n < 0 ? "collection day" : n === 0 ? "put it out" : (n === 1 ? "day to go" : "days to go");
+    const freq = b.every === 7 ? "every week" : `every ${b.every / 7} weeks`;
+    return `<li class="row${n <= 1 ? " soon" : ""}" style="--c: var(--${b.key})">
+      <span class="tab"></span>
+      <div style="min-width:0"><p class="name">${b.name}</p>
+        <p class="sub">${b.what} · ${freq}<br>Collected ${fmt(b.next, { weekday: "short", day: "numeric", month: "short" })}</p></div>
+      <div class="days"><b>${label}</b><span>${unitTxt}</span></div></li>`;
+  }).join("");
+}
+render();
+// Roll over at midnight and when the phone wakes the page
+setInterval(render, 60 * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
