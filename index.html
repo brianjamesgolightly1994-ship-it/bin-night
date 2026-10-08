@@ -131,12 +131,13 @@ footer a { color: var(--accent); }
 <div class="wrap setup" id="setup" hidden>
   <header><p class="brand">Bin Night</p></header>
   <h1>Set up your bin days</h1>
-  <p>Bin Night works for any address in Midlothian. It needs the next collection date for each of your bins, and it works out every date after that.</p>
+  <p>Bin Night works for any address in Midlothian. Look up your address once and it works out every collection after that.</p>
 
   <section class="panel" id="lookupPanel" hidden>
-    <h2>Find them automatically</h2>
-    <p>Opens Midlothian Council's bin page. Enter your postcode and choose your address, and Bin Night picks up the dates.</p>
+    <h2>Find your address</h2>
+    <p>Opens Midlothian Council's bin lookup. Enter your postcode and choose your address, and Bin Night picks up your dates.</p>
     <button class="btn" id="lookup" type="button">Find my dates</button>
+    <button class="linkbtn" id="showForm" type="button">Can't use the lookup? Type the dates in instead</button>
   </section>
 
   <form class="panel" id="form" novalidate>
@@ -294,7 +295,10 @@ $("change").addEventListener("click", showSetup);
 // The Android app can open the council's page and hand back the dates it shows
 if (window.Android && window.Android.openCouncilLookup) {
   $("lookupPanel").hidden = false;
+  $("form").hidden = !config;
+  $("formTitle").textContent = config ? "Or change the dates yourself" : "Type the dates in";
   $("lookup").addEventListener("click", () => window.Android.openCouncilLookup());
+  $("showForm").addEventListener("click", () => { $("form").hidden = false; $("showForm").hidden = true; $("form").scrollIntoView({ behavior: "smooth" }); });
 }
 // Called by the Android app with {address, dates: {dateResidual: "13/10/2026", ...}}
 window.binNightImport = function (json) {
