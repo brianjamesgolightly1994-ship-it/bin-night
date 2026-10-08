@@ -24,16 +24,16 @@
   --muted: #5b6764;
   --line: #d6dcda;
   --accent: #1f6f5c;
-  --grey: #77807e; --green: #1f8a3c; --blue: #2a6fe0; --glass: #d8312b; --food: #4a4442;
+  --grey: #77807e; --green: #1f8a3c; --blue: #2a6fe0; --glass: #d8312b; --food: #4a4442; --brown: #8a5a2b;
   --display: "Bricolage Grotesque", "Arial Rounded MT Bold", system-ui, sans-serif;
   --body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121716; --surface: #1b2220; --fg: #e8eeec; --muted: #9aa7a3; --line: #2c3633; --accent: #5cc7a8;
-  --grey: #8d9794; --green: #34a853; --blue: #4d8cf5; --glass: #ee5049; --food: #8a807c; color-scheme: dark } }
+  --grey: #8d9794; --green: #34a853; --blue: #4d8cf5; --glass: #ee5049; --food: #8a807c; --brown: #b07a45; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #121716; --surface: #1b2220; --fg: #e8eeec; --muted: #9aa7a3; --line: #2c3633; --accent: #5cc7a8;
-  --grey: #8d9794; --green: #34a853; --blue: #4d8cf5; --glass: #ee5049; --food: #8a807c; color-scheme: dark }
+  --grey: #8d9794; --green: #34a853; --blue: #4d8cf5; --glass: #ee5049; --food: #8a807c; --brown: #b07a45; color-scheme: dark }
 
 html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
 *, *::before, *::after { box-sizing: border-box; }
@@ -41,6 +41,8 @@ body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--bo
 .wrap { max-width: 480px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: grid; gap: 22px; }
 header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .brand { font-family: var(--display); font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; margin: 0; }
+[hidden] { display: none !important; }
+a { color: var(--accent); }
 .addr { color: var(--muted); font-size: 0.82rem; }
 
 .hero { background: var(--surface); border-radius: 22px; padding: 22px 20px 20px; display: grid; gap: 14px; border: 1px solid var(--line); }
@@ -75,13 +77,36 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 1.05rem; margin: 
 
 footer { color: var(--muted); font-size: 0.8rem; display: grid; gap: 6px; }
 footer a { color: var(--accent); }
+
+.addr { color: var(--muted); font-size: 0.82rem; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+.setup { display: grid; gap: 16px; }
+.setup h1 { font-family: var(--display); font-weight: 800; font-size: 1.6rem; line-height: 1.1; margin: 0; text-wrap: balance; }
+.setup p { margin: 0; color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px; display: grid; gap: 12px; }
+.panel h2 { margin: 0; }
+.btn { appearance: none; border: 0; border-radius: 12px; padding: 14px 16px; font: 700 1rem var(--body); background: var(--accent); color: var(--surface); cursor: pointer; }
+.btn.quiet { background: var(--bg); color: var(--fg); border: 1px solid var(--line); }
+.btn:focus-visible, .linkbtn:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.field { display: grid; grid-template-columns: 8px 1fr; gap: 4px 12px; align-items: center; }
+.field .tab { grid-row: span 2; align-self: stretch; background: var(--c); border-radius: 4px; margin: 0; }
+.field label { font-weight: 700; font-size: 0.95rem; }
+.field input { font: 1rem var(--body); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); min-width: 0; width: 100%; }
+.fields { display: grid; gap: 14px; }
+.note { font-size: 0.85rem; color: var(--muted); }
+.error { color: var(--glass); font-weight: 700; font-size: 0.9rem; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.actions .btn { flex: 1 1 140px; }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="main" hidden>
   <header>
     <p class="brand">Bin Night</p>
+    <span class="addr" id="addr"></span>
   </header>
+
+  <p class="note" id="imported" hidden></p>
 
   <section class="hero" aria-live="polite">
     <span class="eyebrow" id="heroLabel">Next bin night</span>
@@ -98,22 +123,64 @@ footer a { color: var(--accent); }
   <ul class="list" id="list"></ul>
 
   <footer>
-    <span>Dates follow the pattern from Midlothian Council's printed schedule, checked up to September 2027. Collections start at 06:30, so bins go out the evening before. Holiday weeks can change, so check the <a href="https://my.midlothian.gov.uk/service/Bin_Collection_Dates" target="_blank" rel="noopener">council's bin page</a> around Christmas.</span>
+    <span>Collections start at 06:30, so bins go out the evening before. Dates repeat on Midlothian Council's pattern. Holiday weeks can change, so check the <a href="https://my.midlothian.gov.uk/service/Bin_Collection_Dates" target="_blank" rel="noopener">council's bin page</a> around Christmas.</span>
+    <span><button class="linkbtn" id="change" type="button">Change address or dates</button></span>
   </footer>
 </div>
 
+<div class="wrap setup" id="setup" hidden>
+  <header><p class="brand">Bin Night</p></header>
+  <h1>Set up your bin days</h1>
+  <p>Bin Night works for any address in Midlothian. It needs the next collection date for each of your bins, and it works out every date after that.</p>
+
+  <section class="panel" id="lookupPanel" hidden>
+    <h2>Find them automatically</h2>
+    <p>Opens Midlothian Council's bin page. Enter your postcode and choose your address, and Bin Night picks up the dates.</p>
+    <button class="btn" id="lookup" type="button">Find my dates</button>
+  </section>
+
+  <form class="panel" id="form" novalidate>
+    <h2 id="formTitle">Or type them in</h2>
+    <p class="note" id="formNote">Look up your address on the <a href="https://my.midlothian.gov.uk/service/Bin_Collection_Dates" target="_blank" rel="noopener">council's bin page</a> and copy the next date for each bin. Leave a bin blank if you don't have it.</p>
+    <div class="fields" id="fields"></div>
+    <div class="field" style="--c: var(--muted)">
+      <span class="tab"></span>
+      <label for="f-address">Name for this address (optional)</label>
+      <input id="f-address" type="text" autocomplete="off" placeholder="e.g. Home">
+    </div>
+    <p class="error" id="formError" hidden></p>
+    <div class="actions">
+      <button class="btn" type="submit">Save</button>
+      <button class="btn quiet" id="cancel" type="button" hidden>Cancel</button>
+    </div>
+  </form>
+</div>
+
 <script>
+// Midlothian's repeating collection pattern. Days between collections for each container.
 const BINS = [
-  { key: "grey",  name: "Grey bin",   what: "General waste",            start: "2026-10-13", every: 21 },
-  { key: "blue",  name: "Blue bin",   what: "Plastics, cans, cartons",  start: "2026-10-20", every: 21 },
-  { key: "green", name: "Green bin",  what: "Paper and card",           start: "2026-10-27", every: 21 },
-  { key: "food",  name: "Food caddy", what: "Food waste",               start: "2026-10-14", every: 7 },
-  { key: "glass", name: "Glass box",  what: "Glass bottles and jars",   start: "2026-10-15", every: 14 },
+  { key: "grey",   name: "Grey bin",   what: "General waste",           every: 21, field: "dateResidual" },
+  { key: "blue",   name: "Blue bin",   what: "Plastics, cans, cartons", every: 21, field: "dateRecycling" },
+  { key: "green",  name: "Green bin",  what: "Paper and card",          every: 21, field: "dateCard" },
+  { key: "food",   name: "Food caddy", what: "Food waste",              every: 7,  field: "dateFood" },
+  { key: "glass",  name: "Glass box",  what: "Glass bottles and jars",  every: 14, field: "dateGlass" },
+  { key: "brown",  name: "Brown bin",  what: "Garden waste (permit)",   every: 14, field: "dateGarden" },
 ];
+const STORE = "binnight.v1";
 const DAY = 86400000;
 const toDay = d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY;
 const parse = s => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d) / DAY; };
+const iso = n => new Date(n * DAY).toISOString().slice(0, 10);
 const fmt = (n, opts) => new Date(n * DAY).toLocaleDateString("en-GB", { timeZone: "UTC", ...opts });
+const $ = id => document.getElementById(id);
+
+function load() {
+  try { const v = JSON.parse(localStorage.getItem(STORE)); if (v && v.dates && Object.keys(v.dates).length) return v; } catch (e) {}
+  return null;
+}
+function save(v) { try { localStorage.setItem(STORE, JSON.stringify(v)); } catch (e) {} }
+
+let config = load();
 
 // Next collection on or after `today` (day numbers since epoch)
 function nextOn(bin, today) {
@@ -121,54 +188,58 @@ function nextOn(bin, today) {
   if (today <= s) return s;
   return s + Math.ceil((today - s) / bin.every) * bin.every;
 }
-function onDay(bin, d) { const s = parse(bin.start); return d >= s && (d - s) % bin.every === 0; }
+function onDay(bin, d) { const s = parse(bin.start); return ((d - s) % bin.every + bin.every) % bin.every === 0; }
+
+function activeBins() {
+  return BINS.filter(b => config.dates[b.key]).map(b => ({ ...b, start: config.dates[b.key] }));
+}
 
 function render() {
+  if (!config) return;
   const today = toDay(new Date());
-  const items = BINS.map(b => ({ ...b, next: nextOn(b, today) })).sort((a, b) => a.next - b.next);
+  const bins = activeBins();
+  const items = bins.map(b => ({ ...b, next: nextOn(b, today) })).sort((a, b) => a.next - b.next);
   const dot = k => `<span class="dot" style="--c: var(--${k})"></span>`;
+  $("addr").textContent = config.address || "";
 
-  // Hero: the soonest collection, grouping bins that share it
   const first = items[0].next;
   const group = items.filter(i => i.next === first);
   const daysToCollect = first - today;
   const putOut = daysToCollect - 1;
-  const big = document.getElementById("heroBig"), unit = document.getElementById("heroUnit");
+  const big = $("heroBig"), unit = $("heroUnit");
   const names = group.map(g => g.name.toLowerCase());
   const list = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names.at(-1) : names[0];
   const cap = s => s[0].toUpperCase() + s.slice(1);
   big.classList.remove("word");
   if (daysToCollect === 0) {
-    document.getElementById("heroLabel").textContent = "Collection day";
+    $("heroLabel").textContent = "Collection day";
     big.textContent = "Today"; big.classList.add("word"); unit.textContent = "";
-    document.getElementById("heroWhat").textContent = `${cap(list)} ${group.length > 1 ? "are" : "is"} being collected today from 06:30.`;
+    $("heroWhat").textContent = `${cap(list)} ${group.length > 1 ? "are" : "is"} being collected today from 06:30.`;
   } else if (putOut === 0) {
-    document.getElementById("heroLabel").textContent = "Bin night";
+    $("heroLabel").textContent = "Bin night";
     big.textContent = "Tonight"; big.classList.add("word"); unit.textContent = "";
-    document.getElementById("heroWhat").textContent = `Put the ${list} out tonight for ${fmt(first, { weekday: "long" })} morning.`;
+    $("heroWhat").textContent = `Put the ${list} out tonight for ${fmt(first, { weekday: "long" })} morning.`;
   } else {
-    document.getElementById("heroLabel").textContent = "Next bin night in";
+    $("heroLabel").textContent = "Next bin night in";
     big.textContent = putOut; unit.textContent = putOut === 1 ? "day" : "days";
-    document.getElementById("heroWhat").textContent = `Put the ${list} out on ${fmt(first - 1, { weekday: "long" })} evening, ${fmt(first - 1, { day: "numeric", month: "long" })}.`;
+    $("heroWhat").textContent = `Put the ${list} out on ${fmt(first - 1, { weekday: "long" })} evening, ${fmt(first - 1, { day: "numeric", month: "long" })}.`;
   }
-  document.getElementById("heroChips").innerHTML = group.map(g => `<span class="chip">${dot(g.key)}${g.name}</span>`).join("");
+  $("heroChips").innerHTML = group.map(g => `<span class="chip">${dot(g.key)}${g.name}</span>`).join("");
 
-  // Two-week strip, marked on collection days
   ["week", "week2"].forEach((id, w) => {
     let html = "";
     for (let i = 0; i < 7; i++) {
       const d = today + w * 7 + i;
-      const hits = BINS.filter(b => onDay(b, d));
+      const hits = bins.filter(b => onDay(b, d));
       html += `<div class="day${d === today ? " today" : ""}" aria-label="${fmt(d, { weekday: "long", day: "numeric", month: "long" })}: ${hits.map(h => h.name).join(", ") || "no collection"}">
         <span class="dname">${fmt(d, { weekday: "short" })}</span>
         <span class="dnum">${fmt(d, { day: "numeric" })}</span>
         <span class="ddots">${hits.map(h => dot(h.key)).join("")}</span></div>`;
     }
-    document.getElementById(id).innerHTML = html;
+    $(id).innerHTML = html;
   });
 
-  // Per-container rows
-  document.getElementById("list").innerHTML = items.map(b => {
+  $("list").innerHTML = items.map(b => {
     const n = b.next - today - 1;
     const label = n < 0 ? "Today" : n === 0 ? "Tonight" : n;
     const unitTxt = n < 0 ? "collection day" : n === 0 ? "put it out" : (n === 1 ? "day to go" : "days to go");
@@ -180,12 +251,76 @@ function render() {
       <div class="days"><b>${label}</b><span>${unitTxt}</span></div></li>`;
   }).join("");
 }
-render();
+
+// Setup screen
+$("fields").innerHTML = BINS.map(b => `<div class="field" style="--c: var(--${b.key})">
+  <span class="tab"></span><label for="f-${b.key}">${b.name} <span class="note">· ${b.what}</span></label>
+  <input id="f-${b.key}" type="date"></div>`).join("");
+
+function showSetup() {
+  const today = toDay(new Date());
+  BINS.forEach(b => {
+    const s = config && config.dates[b.key];
+    $("f-" + b.key).value = s ? iso(nextOn({ ...b, start: s }, today)) : "";
+  });
+  $("f-address").value = (config && config.address) || "";
+  $("cancel").hidden = !config;
+  $("formError").hidden = true;
+  $("main").hidden = true; $("setup").hidden = false;
+  window.scrollTo(0, 0);
+}
+function showMain() {
+  $("setup").hidden = true; $("main").hidden = false;
+  render();
+}
+
+$("form").addEventListener("submit", e => {
+  e.preventDefault();
+  const dates = {};
+  BINS.forEach(b => { const v = $("f-" + b.key).value; if (v) dates[b.key] = v; });
+  if (!Object.keys(dates).length) {
+    $("formError").textContent = "Add the next date for at least one bin, then tap Save.";
+    $("formError").hidden = false;
+    return;
+  }
+  config = { address: $("f-address").value.trim(), dates };
+  save(config);
+  $("imported").hidden = true;
+  showMain();
+});
+$("cancel").addEventListener("click", showMain);
+$("change").addEventListener("click", showSetup);
+
+// The Android app can open the council's page and hand back the dates it shows
+if (window.Android && window.Android.openCouncilLookup) {
+  $("lookupPanel").hidden = false;
+  $("lookup").addEventListener("click", () => window.Android.openCouncilLookup());
+}
+// Called by the Android app with {address, dates: {dateResidual: "13/10/2026", ...}}
+window.binNightImport = function (json) {
+  let data;
+  try { data = typeof json === "string" ? JSON.parse(json) : json; } catch (e) { return; }
+  const dates = {};
+  BINS.forEach(b => {
+    const v = data.dates && data.dates[b.field];
+    const m = v && /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v.trim());
+    if (m) dates[b.key] = `${m[3]}-${m[2]}-${m[1]}`;
+  });
+  if (!Object.keys(dates).length) return;
+  config = { address: titleCase(data.address || ""), dates };
+  save(config);
+  $("imported").textContent = `Dates picked up from the council for ${config.address || "your address"}. Tap "Change address or dates" below to check them.`;
+  $("imported").hidden = false;
+  showMain();
+};
+function titleCase(s) { return s.toLowerCase().replace(/\b([a-z])/g, c => c.toUpperCase()).replace(/\b(Eh\d+)\s*(\d\w\w)\b/i, (m, a, b) => (a + " " + b).toUpperCase()); }
+
+if (config) showMain(); else showSetup();
+
 // Roll over at midnight and when the phone wakes the page
 setInterval(render, 60 * 1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
-
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && location.protocol === "https:" && location.hostname !== "appassets.androidplatform.net") navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>

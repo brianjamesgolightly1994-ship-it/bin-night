@@ -2,7 +2,7 @@
 
 A small installable web app that counts down to the next bin night, built from Midlothian Council's collection schedule. It runs entirely in the browser and works offline once installed.
 
-Collection patterns live in the `BINS` list in `index.html`. Update the start dates there if the council changes the schedule.
+Anyone in Midlothian can use it: on first open it asks for the next collection date of each bin and repeats them on the council's pattern (the `BINS` list in `index.html`). Dates are saved on the phone only. In the Android app, "Find my dates" opens the council's lookup page and reads the dates it shows.
 
 ## Android app
 
